@@ -8,7 +8,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -24,16 +23,10 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-public class Board_5_14 extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
+public class Board_5_14 extends JPanel implements MouseListener, MouseMotionListener, ActionListener, Board {
 
 	//plays well with an 800x950px Board --- will have to be adjusted if size is changed 
 	private static final long serialVersionUID = 1L;  // you need this when a class is using java.io
-	public static final int ROWS = 6;
-	public static final int COLS = 7;
-	public static final int RED_DISK = 1;
-	public static final int YEL_DISK = -1;
-	public static final int BUTTON_WIDTH = 200;  //in pixels
-	public static final int BUTTON_HEIGHT = 24;
 	
 	private int pWidth, pHeight;
 	
@@ -183,8 +176,8 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 	
 		//Draw all disks --first
 		//loop to draw the board state
-		System.out.println("in Paint component panel width is: " + pWidth);
-		System.out.println("in Paint component colWidth is: " + colWidth);
+		//System.out.println("in Paint component panel width is: " + pWidth);
+		//System.out.println("in Paint component colWidth is: " + colWidth);
 			
 		int redXSpacer = (int)(colWidth * 0.02);
 		int redSizeSpacer = (int)(colWidth * 0.12);
@@ -386,7 +379,7 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 				//look basically going Left in the side 1 direction
 				if(goingSide1Direction && col - (pos * horiz) >= 0
 						&&  row - (pos * vert) < ROWS && row - (pos * vert) >= 0) {
-					System.out.println("I'm in the bottom check");
+					//System.out.println("I'm in the bottom check");
 					if(matrix[row - (pos * vert)][col - (pos * horiz)]== currentTurn) {
 						side1Count++;
 						winMoveList.add(0, new Point(col - (pos * horiz), row - (pos * vert)));  //adds to the front
@@ -398,7 +391,7 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 				//look basically right going in the side 2 direction
 				if(goingSide2Direction && col + (pos * horiz) < COLS 
 						&& row + (pos * vert) < ROWS && row + (pos * vert) >= 0) {
-					System.out.println("I'm in the top check");
+					//System.out.println("I'm in the top check");
 					if(matrix[row + (pos * vert)][col + (pos * horiz)]== currentTurn) {
 						side2Count++;
 						winMoveList.add(new Point(col + (pos * horiz), row + (pos * vert) ));  //add to end
@@ -439,6 +432,9 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 			if(player1Name.toLowerCase().equals("c") || player1Name.toLowerCase().equals("computer")) {
 				player1Name = "COMPUTER_PLAYER";
 				// make a computer move generator too
+				p1CMG = new ComputerMoveGenerator(this);
+			
+				
 			}
 			
 			//get the color
@@ -460,9 +456,18 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 					if(colorNameP1.toLowerCase().equals("red") || colorNameP1.toLowerCase().equals("r")) {
 						player1Color = RED_DISK;
 						player1ColorName = "RED";
+						
+						if(player1Name.equals("COMPUTER_PLAYER")) {
+							p1CMG.setMyColor(player1Color);
+						}
 					} else if (colorNameP1.toLowerCase().equals("yellow") || colorNameP1.toLowerCase().equals("y")) {
 						player1Color = YEL_DISK;
 						player1ColorName = "YELLOW";
+						
+						if(player1Name.equals("COMPUTER_PLAYER")) {
+							p1CMG.setMyColor(player1Color);
+						}
+						
 					} else {
 						JOptionPane.showMessageDialog(this, 
 								"Sorry your have to input Red or Yellow (input \"r\" or \"y\" )",
@@ -487,6 +492,7 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 					if(player2Name.toLowerCase().equals("c") || player2Name.toLowerCase().equals("computer")) {
 						player2Name = "COMPUTER_PLAYER";
 						// make a computer move generator too.  And we can have 2 move generator object
+						p2CMG = new ComputerMoveGenerator(this);
 					}
 					
 					//get the color for player 2
@@ -495,10 +501,18 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 						colorMsg = "Since Player 1 (" + player1Name + ") is Red, Player 2 (" + player2Name + ") will be Yellow?";
 						player2Color = YEL_DISK;
 						player2ColorName = "YELLOW";
+						
+						if(player2Name.equals("COMPUTER_PLAYER")) {
+							p2CMG.setMyColor(player2Color);
+						}
 					} else {
 						colorMsg = "Since Player 1 (" + player1Name + ") is Yellow, Player 2 (" + player2Name + ") will be Red?";
 						player2Color = RED_DISK;
 						player2ColorName = "RED";
+						
+						if(player2Name.equals("COMPUTER_PLAYER")) {
+							p2CMG.setMyColor(player2Color);
+						}
 					}
 					
 					colorMsg += ".....OK? (No will Quit Game)";
@@ -566,11 +580,11 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 		
 		
 		//For checking....
-		System.out.println("Player 1 Name  is: " + player1Name);
-		System.out.println("Player 1 Color is: " + player1Color);
-		
-		System.out.println("Player 2 Name  is: " + player2Name);
-		System.out.println("Player 2 Color is: " + player2Color);
+//		System.out.println("Player 1 Name  is: " + player1Name);
+//		System.out.println("Player 1 Color is: " + player1Color);
+//		
+//		System.out.println("Player 2 Name  is: " + player2Name);
+//		System.out.println("Player 2 Color is: " + player2Color);
 	}
 	
 	
@@ -652,7 +666,7 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 			colNum++;
 		}
 		
-		System.out.println("End of findColNum and theCol is " + whichCol);
+		//System.out.println("End of findColNum and theCol is " + whichCol);
 		return whichCol;
 	}
 
@@ -669,7 +683,7 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 		}
 		whatRow = curPlace - 1;
 		
-		System.out.println("In letDiskFall rowPlace = " + whatRow);
+		//System.out.println("In letDiskFall rowPlace = " + whatRow);
 		
 		if(whatRow >= 0) {
 			matrix[whatRow][whichCol] = currentTurn;
@@ -720,7 +734,7 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 					 
 						int whichRow = placeDisk(whichCol);
 					
-						System.out.println("Which row is ..  " + whichRow);
+						//System.out.println("Which row is ..  " + whichRow);
 						
 						if(whichRow < 0) {
 							if(currentTurn == RED_DISK) {
