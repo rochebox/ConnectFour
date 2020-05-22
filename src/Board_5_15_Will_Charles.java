@@ -24,16 +24,10 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-public class Board_5_15_Will_Charles extends JPanel implements MouseListener, MouseMotionListener, ActionListener {
+public class Board_5_15_Will_Charles extends JPanel implements MouseListener, MouseMotionListener, ActionListener, Board {
 
 	//Plays well with an 800x950 board size -- will have to be adjusted if size is changed
 	private static final long serialVersionUID = 1L;  // you need this when a class is using java.io
-	public static final int ROWS = 6;
-	public static final int COLS = 7;
-	public static final int RED_DISK = 1;
-	public static final int YEL_DISK = -1;
-	public static final int BUTTON_WIDTH = 200;  //in pixels
-	public static final int BUTTON_HEIGHT = 24;
 	
 	private int pWidth, pHeight;
 	
@@ -723,7 +717,8 @@ public class Board_5_15_Will_Charles extends JPanel implements MouseListener, Mo
 						} else {
 							//Here stone placement was successful--so go on to next turn
 							//  check here to see if you win
-							//whichRow and whichCol   
+							//whichRow and whichCol  
+							moveCount++;
 							winGameOver = this.winCheck();
 							
 							if(winGameOver == false) {
@@ -762,18 +757,18 @@ public class Board_5_15_Will_Charles extends JPanel implements MouseListener, Mo
 
 	private void doRestart() {
 	
-	for(int row = 0; row < ROWS; row++) {
-		for(int col = 0; col < COLS; col++) {
-			matrix[row][col] = 0;
+		for(int row = 0; row < ROWS; row++) {
+			for(int col = 0; col < COLS; col++) {
+				matrix[row][col] = 0;
+			}
 		}
-	}
-	
-	currentTurn = player1Color;
-	startGame = true;
-	drawPlayerNames = true;
-	winGameOver = false;
-	moveCount = 0;
-	repaint();
+		
+		currentTurn = player1Color;
+		startGame = true;
+		drawPlayerNames = true;
+		winGameOver = false;
+		moveCount = 0;
+		repaint();
 	
 	}
 
@@ -799,6 +794,12 @@ public class Board_5_15_Will_Charles extends JPanel implements MouseListener, Mo
 	//Allows a computer move generator to see the current game matrix
 	public int[][] getMatrix() {
 		return matrix;	
+	}
+
+	@Override
+	public int getGameMoveCount() {
+		// TODO Auto-generated method stub
+		return moveCount;
 	}
 
 	

@@ -15,7 +15,7 @@ public class GameRunner {
 		
 		//Board gb = new Board(width, height-22);
 		//Board2 gb = new Board2(width, height-22);
-		Board_5_14 gb = new Board_5_14(width, height-22);
+		Board_5_20 gb = new Board_5_20(width, height-22);
 		//BoardOriginal gb = new BoardOriginal(width, height-22);
 		g.add(gb);
 		g.setVisible(true);

@@ -454,7 +454,8 @@ public class BoardOriginal extends JPanel implements MouseListener, MouseMotionL
 						} else {
 							//Here stone placement was successful--so go on to next turn
 							//  check here to see if you win
-							//whichRow and whichCol   
+							//whichRow and whichCol  
+							moveCount++;
 							winGameOver = checkWin_(whichRow, whichCol);
 							
 							if(winGameOver == false) {
@@ -841,6 +842,12 @@ public class BoardOriginal extends JPanel implements MouseListener, MouseMotionL
 		}
 		
 		
+	}
+
+	@Override
+	public int getGameMoveCount() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 	

@@ -22,8 +22,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
-public class Board_5_14 extends JPanel implements MouseListener, MouseMotionListener, ActionListener, Board {
+public class Board_5_20 extends JPanel implements MouseListener, MouseMotionListener, ActionListener, Board {
 
 	//plays well with an 800x950px Board --- will have to be adjusted if size is changed 
 	private static final long serialVersionUID = 1L;  // you need this when a class is using java.io
@@ -90,7 +91,8 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 	   
 	private boolean startGame = false;
 	 //private boolean startGame = true;
-	private boolean winGameOver = false;	 
+	private boolean winGameOver = false;
+	 
 	
 	 //This is for ending the game and for computer move generator
 	   
@@ -101,10 +103,16 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 	private JButton startRestartB = new JButton("Start/Restart");
 	private JButton newGameB = new JButton("New Game");
 	
+	//New Timer Stuff
+	private Timer doMoveTimer;
+	private Timer nextMoveTimer;
+	private boolean lockedToDrawNextComputerMove = false;
+	private int lockedFindNextComputerMove = NO;
+	private int[] moveToDo = null;
 	
 
 	//Constructor
-	public Board_5_14 (int w, int h) {
+	public Board_5_20 (int w, int h) {
 		pWidth = w;
 		pHeight = h;
 		this.setSize(pWidth, pHeight);
@@ -163,6 +171,15 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 		this.addMouseListener(this);
 		this.setFocusable(true);
 		this.addMouseMotionListener(this);
+		
+		doMoveTimer = new Timer(2000, this);
+		nextMoveTimer = new Timer(2500, this);
+		
+		doMoveTimer.setActionCommand("DO_MOVE_TIMER");
+		nextMoveTimer.setActionCommand("NEXT_MOVE_TIMER");
+		
+		doMoveTimer.restart();
+		nextMoveTimer.restart();
 	
 	}
 
@@ -507,7 +524,6 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 						p2CMG.setMyPlayer(PLAYER_2);	
 					}
 				
-					
 					//get the color for player 2
 					String colorMsg = "";
 					if(player1Color == RED_DISK) {
@@ -580,8 +596,13 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 //					    System.out.println("At end of doStartReset computerOrHumanMove is " + 
 //					    		computerOrHumanMove);
 						if(computerOrHumanMove != HUMAN) {
-								//do computer move ....for the computer player
-							doComputerMove(computerOrHumanMove);  // Player1 or Player2
+							lockedFindNextComputerMove = computerOrHumanMove;
+							System.out.println("Hello in doStartReset() We Are Locked for a Next Computer Move");
+							System.out.println("LockedForNextComputerMove is " +  lockedFindNextComputerMove);
+							System.out.println("NOW WAITING TO MAKE THE NEXT MOVE ......... ");
+							System.out.println();
+							//do computer move ....for the computer player
+							//doComputerMove(computerOrHumanMove);  // Player1 or Player2
 						}      				    
 					}			
 				}		
@@ -589,9 +610,12 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 		}
 	}
 	
-	
-	public void doComputerMove(int whichPlayer) {
+	public void setTheNextComputerMove(int whichPlayer) {
+		//private boolean lockedForComputerMove = false;
+		//private int lockedForNextComputerMove = NO;
+		
 		int[] theNextMove;  //variable to hold the row and col of next move
+		
 		if(whichPlayer == PLAYER_1) {
 			System.out.println("Player 1's move is now being made by COMPUTER.....!!!!");
 			//DO A MOVE!!!!
@@ -604,57 +628,96 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 		
 		
 		//try to place the disk from the computer move.....
-		System.out.println("In doComputerMove().....Just Before Disk Placement");
+		System.out.println("In setTheNextComputerMove().....Just Before Disk Placement");
 		System.out.println("Row for move is: " + theNextMove[Board.A_ROW]);
 		System.out.println("Col for move is: " + theNextMove[Board.A_COL]);
 		
-		int whichRow = placeDisk(theNextMove[Board.A_COL]);
-		System.out.println("Back from placeDisk() and whichRow is " + whichRow);
+		moveToDo = new int[2];
+		moveToDo[0] = theNextMove[Board.A_ROW];
+		moveToDo[1] = theNextMove[Board.A_COL];
+		System.out.println("From setTheNextComputerMove() we have new move at: ");
+		System.out.println("NextMove [" + moveToDo[0] + "][" + moveToDo[1] + "]");
+		System.out.println();
 		
-		if(whichRow != theNextMove[Board.A_ROW]) {
-			if(currentTurn == RED_DISK) {
-				System.out.println("ERROR with CMG for Red Player...." );
-			} else {
-				System.out.println("ERROR with CMG for Yellow Player...." );
-			}
-		} else {
-			//Here stone placement was successful--so go on to next turn
-			//  check here to see if you win  
-			repaint();
-			moveCount++;   //count moves on HUMAN-Player Side
-			winGameOver = checkWin_(theNextMove[Board.A_ROW], theNextMove[Board.A_COL]);
-			System.out.println("In doComputerMove() back from checkWin_");
-			System.out.println("winGameOver is " + winGameOver);
-			if(winGameOver == false) {
-				
-				if(moveCount >= Board.ROWS * Board.COLS) {
-					endOnTieGame();
-					
-				} else {
-					changeTurn();
-					// This is for the possibility of a second computer move....
-					int computerOrHumanMove = seeIfComputerMove();
-					if(computerOrHumanMove != HUMAN) {
-						//do computer move ....but for what player..
-						System.out.println("In doComputerMove() bottom --we are making second computer move");
-						this.paintImmediately(0, 0, boardW, boardH);
-						sleepForAMove();
-						doComputerMove(computerOrHumanMove);
-					} 
-				}
-			} else {			
-				Point[] winPoints = new Point[winMoveList.size()]; 
-				winPoints = winMoveList.toArray(winPoints); 
-		  
-				System.out.print("The final winning points " );
-		        for (Point x : winPoints) System.out.print(x + " "); 
-		        System.out.println();	
-			}
+		//set up for drawing it...
+		lockedToDrawNextComputerMove = true;  
+		lockedFindNextComputerMove = NO;
+	}
+	
+	
+	public void drawTheNextComputerMove() {
+		
+		//private boolean lockedForComputerMove = false;
+		//private int lockedForNextComputerMove = NO;
+		
+//		int[] theNextMove;  //variable to hold the row and col of next move
+//		
+//		if(whichPlayer == PLAYER_1) {
+//			System.out.println("Player 1's move is now being made by COMPUTER.....!!!!");
+//			//DO A MOVE!!!!
+//			theNextMove = p1CMG.getNextMove();
+//		} else {
+//			System.out.println("Player 2's move is now being made by COMPUTER.....!!!!");
+//			//DO A MOVE!!!!
+//			theNextMove = p2CMG.getNextMove();
+//		}
+		System.out.println("In DrawTheNextComputerMove()...at top");
+		
+		if(lockedToDrawNextComputerMove) {
+			//try to place the disk from the computer move.....
+			System.out.println("In doComputerMove().....Just Before Disk Placement");
+			System.out.println("Row for move is: " + moveToDo[Board.A_ROW]);
+			System.out.println("Col for move is: " + moveToDo[Board.A_COL]);
 			
+			int whichRow = placeDisk(moveToDo[Board.A_COL]);
+			System.out.println("Back from placeDisk() and whichRow is " + whichRow);
+			
+			if(whichRow != moveToDo[Board.A_ROW]) {
+				if(currentTurn == RED_DISK) {
+					System.out.println("ERROR with CMG for Red Player...." );
+				} else {
+					System.out.println("ERROR with CMG for Yellow Player...." );
+				}
+			} else {
+				//Here stone placement was successful--so go on to next turn
+				//  check here to see if you win  
+				repaint();
+				moveCount++;   //count moves on HUMAN-Player Side
+				winGameOver = checkWin_(moveToDo[Board.A_ROW], moveToDo[Board.A_COL]);
+				System.out.println("In drawTheNextComputerMove() back from checkWin_");
+				System.out.println("winGameOver is " + winGameOver);
+				if(winGameOver == false) {
+					
+					if(moveCount >= Board.ROWS * Board.COLS) {
+						endOnTieGame();
+						
+					} else {	
+						changeTurn();
+						
+						
+						// This is for the possibility of a second computer move....
+						int computerOrHumanMove = seeIfComputerMove();
+						if(computerOrHumanMove != HUMAN) {
+							//do computer move ....but for what player..
+							//System.out.println("In doComputerMove() bottom --we are making second computer move");
+							repaint();
+							//this.paintImmediately(0, 0, boardW, boardH);
+							//sleepForAMove();
+							//doComputerMove(computerOrHumanMove);
+							lockedFindNextComputerMove = computerOrHumanMove;
+						} 
+					}
+				} else {			
+					Point[] winPoints = new Point[winMoveList.size()]; 
+					winPoints = winMoveList.toArray(winPoints); 
+			  
+					System.out.print("The final winning points " );
+			        for (Point x : winPoints) System.out.print(x + " "); 
+			        System.out.println();	
+				}
+				lockedToDrawNextComputerMove = false;
+			}	
 		}
-		
-		
-		
 	}
 	
 	
@@ -831,8 +894,10 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 				isCTurn = PLAYER_2;
 			}
 		}
+		
 //		System.out.println("At End seeIfComputerMove()....");
 //		System.out.println("isCTurn is ........" + isCTurn);
+		
 		return isCTurn;
 	}
 
@@ -922,9 +987,13 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 							computerOrHumanMove = seeIfComputerMove();
 							if(computerOrHumanMove != HUMAN) {
 								//do computer move ....but for what player..
-								this.paintImmediately(0, 0, this.boardW, this.boardH);
-								sleepForAMove();
-								doComputerMove(computerOrHumanMove);
+								//this.paintImmediately(0, 0, this.boardW, this.boardH);
+								//sleepForAMove();
+								//doComputerMove(computerOrHumanMove);
+								//private boolean lockedForComputerMove = false;
+								//private int lockedForNextComputerMove = NO;
+								lockedFindNextComputerMove = computerOrHumanMove;
+								
 							}
 						}
 					} 
@@ -968,16 +1037,73 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 		int computerOrHumanMove = seeIfComputerMove();
 		if(computerOrHumanMove != HUMAN) {
 			//do computer move ....but for what player..
-			this.paintImmediately(0, 0, this.boardW, this.boardH);
-			sleepForAMove();
-			doComputerMove(computerOrHumanMove);
+			//this.paintImmediately(0, 0, this.boardW, this.boardH);
+			//sleepForAMove();
+			//doComputerMove(computerOrHumanMove);
+			lockedFindNextComputerMove = computerOrHumanMove;
 		} 
 		
 		
 	}
-
-
-
+	
+	public void makeTheComputerMove() {
+		
+		//This is triggered to do a move with a wait using repaint()
+		if(lockedToDrawNextComputerMove) {
+			int whichRow = placeDisk(moveToDo[Board.A_COL]);
+			System.out.println("In MakeTheComputerMove, Back from placeDisk() and whichRow is " + whichRow);
+		
+			if(whichRow != moveToDo[Board.A_ROW]) {
+				if(currentTurn == RED_DISK) {
+					System.out.println("ERROR with CMG for Red Player....in makeTheComputerMove" );
+				} else {
+					System.out.println("ERROR with CMG for Yellow Player...." );
+				}
+			} else {
+				//Here stone placement was successful--so go on to next turn
+				//  check here to see if you win  
+				repaint();
+				moveCount++;   //count moves on HUMAN-Player Side
+				winGameOver = checkWin_(moveToDo[Board.A_ROW], moveToDo[Board.A_COL]);
+				System.out.println("In doComputerMove() back from checkWin_");
+				System.out.println("winGameOver is " + winGameOver);
+				if(winGameOver == false) {
+					
+					if(moveCount >= Board.ROWS * Board.COLS) {
+						endOnTieGame();
+						
+					} else {
+						changeTurn();
+						lockedToDrawNextComputerMove=false;
+						moveToDo = null;
+						
+						// This is for the possibility of a second computer move....
+						int computerOrHumanMove = seeIfComputerMove();
+						if(computerOrHumanMove != HUMAN) {
+							//do computer move ....but for what player..
+							//System.out.println("In makeTheComputerMove() bottom --we are making second computer move");
+							//this.paintImmediately(0, 0, boardW, boardH);
+							repaint();
+							//doComputerMove(computerOrHumanMove);
+							this.lockedFindNextComputerMove = computerOrHumanMove;
+							
+						} 
+					}
+				} else {			
+					Point[] winPoints = new Point[winMoveList.size()]; 
+					winPoints = winMoveList.toArray(winPoints); 
+			  
+					System.out.print("The final winning points " );
+			        for (Point x : winPoints) System.out.print(x + " "); 
+			        System.out.println();	
+				}
+				
+			}
+		}
+		
+	}
+	
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
@@ -993,8 +1119,28 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 			doRestart();
 		}
 		
-		if("MOVE_TIMER".equals(e.getActionCommand())){
-			System.out.println("Make the Move Now");
+		//doMoveTimer.setActionCommand("DO_MOVE_TIMER");
+		//nextMoveTimer.setActionCommand("NEXT_MOVE_TIMER");
+		
+		if("DO_MOVE_TIMER".equals(e.getActionCommand())){
+			System.out.println("Make the Move Now -- DO MOVE");
+			System.out.println("LockedForComputerMove " +  lockedToDrawNextComputerMove);
+			if(this.lockedToDrawNextComputerMove) {
+				System.out.println("In ActionPerformed we should be drawing...");
+				drawTheNextComputerMove();
+			}
+		}
+		
+		if("NEXT_MOVE_TIMER".equals(e.getActionCommand())){
+			System.out.println("Set Up for Next Move-- NEXT MOVE");
+			System.out.println("LockedForComputerMove " +  lockedToDrawNextComputerMove);
+			if(this.lockedFindNextComputerMove > Board.NO) {
+				setTheNextComputerMove(lockedFindNextComputerMove);
+				lockedFindNextComputerMove = Board.NO;
+				this.lockedToDrawNextComputerMove = true;
+				
+			}
+			
 		}
 	}
 	
@@ -1010,33 +1156,6 @@ public class Board_5_14 extends JPanel implements MouseListener, MouseMotionList
 	public int[][] getMatrix() {
 		// TODO Auto-generated method stub
 		return matrix;
-	}
-	
-	
-	//ADD DELAY!!!
-		public void sleepForAMove() {
-	        
-//	        //Thread currThread = Thread.currentThread(); 
-//	        //currThread.sleep(PenteGameBoard.SLEEP_TIME);
-//	        
-//	        try
-//	        {
-//	             
-//	             Thread currThread = Thread.currentThread(); 
-//	             currThread.sleep(1500); // sleep for 1500 milliseconds
-//	        }
-//	        catch (Exception e)
-//	        {
-//	             e.printStackTrace();
-//	        }
-		
-			
-			for(int i = 0; i < 100000; i++) {
-				System.out.println("Sleep for a Move is called");
-			}
-	       
-	    }
-	
-
+	}	
 	
 }

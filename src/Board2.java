@@ -16,13 +16,10 @@
 	import javax.swing.JOptionPane;
 	import javax.swing.JPanel;
 
-	public class Board2 extends JPanel implements MouseListener, MouseMotionListener {
+	public class Board2 extends JPanel implements MouseListener, MouseMotionListener, Board {
 		
 		private static final long serialVersionUID = 1L;  // you need this when a class is using java.io
-		public static final int ROWS = 6;
-		public static final int COLS = 7;
-		public static final int RED_DISK = 1;
-		public static final int YEL_DISK = -1;
+
 
 		private int pWidth, pHeight;
 		
@@ -52,6 +49,8 @@
 		private final ImageIcon yelIcon = new ImageIcon("yellowDisk.png");
 		
 		private ArrayList<Point> winMoveList;
+		
+		private int moveCount = 0;
 
 		
 		public Board2 (int w, int h) {
@@ -394,7 +393,7 @@
 						//4. Here stone placement was successful--so go on to next turn
 						//  check here to see if you win
 						//whichRow and whichCol   
-
+						moveCount++;
 						win = winCheck();
 						//HERE *****
 						System.out.println("In mouseClicked win is " + win);
@@ -421,6 +420,20 @@
 
 			}
 
+		}
+
+
+		@Override
+		public int[][] getMatrix() {
+			// TODO Auto-generated method stub
+			return matrix;
+		}
+
+
+		@Override
+		public int getGameMoveCount() {
+			// TODO Auto-generated method stub
+			return moveCount;
 		}
 					
 	}
